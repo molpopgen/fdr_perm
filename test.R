@@ -1,27 +1,26 @@
+library(tibble)
+library(dplyr)
 source("sim.R")
+NSIMS_PER_PARAM=100
 
-g=simSites(1000,500,1,5)
-
-for (noise in c(0.1,0.25,0.5,1))
-{
-    p=simTraits(g,noise)
-    pv=doSingleMarkerTests(g,p)
-    obs=getMedianDiffs(g,p,1:ncol(p))
-    bounds=doPerms(g,p,100)
-    print(noise)
-    #print(bounds)
-    #print(paste(min(obs),max(obs)))
-    #print(is.numeric(bounds$lower))
-    #print(paste(length(which(obs <= bounds$lower)),length(which(obs>=bounds$upper))))
-    sig_perm_low = which(obs <= bounds$lower)
-    sig_perm_hi = which(obs >= bounds$upper)
-    pv_low = pv[sig_perm_low]
-    pv_hi = pv[sig_perm_hi]
-    #Print true positive rate for permutation method
-    print(paste(length(which(pv_low<=0.05)),length(pv_low)))
-    print(paste(length(which(pv_hi<=0.05)),length(pv_hi)))
-    #Print what comes out of single-marker testing
-    print(length(which(pv<=0.05)))
-    #Overlap b/w single-marker p-values and what perms find
-    print(length(intersect(which(pv<=0.05),c(sig_perm_hi,sig_perm_low))))
+sim_results=tibble(upreg=numeric(),tpr=numeric(),noise=numeric(),fdr_sm=numeric(),fdr_sm_qv=numeric(),fdr_perm=numeric(),tpr_sm=numeric(),tpr_perm=numeric())
+for(upreg in c(2,5,10))
+    {
+    for (tpr in seq(0.05,0.2,0.05))
+        {
+        for (noise in c(0.1,0.25,0.5,1))
+        {
+            for(replicate in 1:NSIMS_PER_PARAM)
+            {
+                results = doStudy(100,20,noise,tpr,upreg,1,5)
+                sim_results=add_row(sim_results,upreg,tpr,noise,fdr_sm=results$fdr_sm,fdr_sm_qv=results$fdr_sm_qv,fdr_perm=results$fdr_perm,tpr_sm=results$tpr_sm,tpr_perm=results$tpr_perm)
+            }
+        }
+    }
 }
+
+means = sim_results %>% 
+    group_by(upreg,tpr,noise) %>%
+    summarise(mfdr_sm=mean(fdr_sm),mfdr_perm=mean(fdr_perm),mtpr_sm=mean(tpr_sm),mtpr_perm=mean(tpr_perm))
+
+write.table(data.frame(means),file="mean_fdr.txt",quote=F,row.names=F)
