@@ -21,6 +21,6 @@ for(upreg in c(2,5,10))
 
 means = sim_results %>% 
     group_by(upreg,tpr,noise) %>%
-    summarise(mfdr_sm=mean(fdr_sm),mfdr_perm=mean(fdr_perm),mtpr_sm=mean(tpr_sm),mtpr_perm=mean(tpr_perm))
+    summarise(mfdr_sm=mean(fdr_sm),mfdr_sm_qv=mean(fdr_sm_qv),mfdr_perm=mean(fdr_perm),mtpr_sm=mean(tpr_sm),mtpr_perm=mean(tpr_perm))
 
 write.table(data.frame(means),file="mean_fdr.txt",quote=F,row.names=F)
