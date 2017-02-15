@@ -14,14 +14,26 @@ doSingleMarkerTests=function(genotypes,phenotypes)
     return(rv)
 }
 
-getMedianDiffs=function(genotypes,phenotypes,labels)
+getMedianDiffs=function(genotypes,phenotypes,labels,docheck=TRUE)
 {
     rv=array()
     for(i in 1:ncol(phenotypes))
     {
-        without=median(phenotypes[which(genotypes[,i][labels]==0),i])
-        with=median(phenotypes[which(genotypes[,i][labels]==1),i])
-        rv[i]=with-without
+		#These are individuals in raw data with the "CNV"
+		haveVariantUnsampled=which(genotypes[,i]==1)
+		#These are individuals in the permuted data with it
+		haveVariantSampled=which(genotypes[,i][labels]==1)
+		stopifnot(length(haveVariantSampled) == length(haveVariantUnsampled))
+		if(length(intersect(haveVariantSampled,haveVariantUnsampled)) != length(haveVariantUnsampled) || docheck==FALSE)
+		{
+			without=median(phenotypes[which(genotypes[,i][labels]==0),i])
+			with=median(phenotypes[which(genotypes[,i][labels]==1),i])
+			rv[i]=with-without
+		}
+		else #Skip columns where permuted data == unpermuted data
+		{
+			rv[i]=NA
+		}
     }
     return(rv)
 }
@@ -30,19 +42,23 @@ doPerms=function(genotypes,phenotypes,nperms)
 {
     labels=1:nrow(genotypes)
     rv=NA
-    for(i in 1:nperms)
-    {
+    lenrv=0
+	#for(i in 1:nperms)
+    while(lenrv < nperms)
+	{
         labels=sample(labels)
         md=getMedianDiffs(genotypes,phenotypes,labels)
-        if(i==1)
+        if(lenrv==0)
         {
-            rv=md
+            rv=md[!is.na(md)]
         }
         else
         {
-            rv=c(rv,md)
+            rv=c(rv,md[!is.na(md)])
         }
+		lenrv = length(rv)
     }
+	stopifnot(length(rv[is.na(rv)])==0)
     return(list(lower=as.numeric(quantile(rv,0.025)),upper=as.numeric(quantile(rv,0.975))))
 }
 
@@ -97,12 +113,11 @@ doStudy=function(nsites,nsam,noise,tpr,upreg,a,b)
     pv=doSingleMarkerTests(g,p)
     qv=qvalue(pv,fdr=0.05)  #Storey's FDR method at 0.05
     qvsig=which(qv$significant == TRUE)
-    obs=getMedianDiffs(g,p,1:ncol(p))
-    bounds=doPerms(g,p,100)
+    obs=getMedianDiffs(g,p,1:ncol(p),FALSE)
+    bounds=doPerms(g,p,25000)
     sig_perm_low = which(obs <= bounds$lower)
     sig_perm_hi = which(obs >= bounds$upper)
-   
-    fdr_qv = length(setdiff(qvsig,truePositives))/length(which(pv<=0.05))
+	fdr_qv = length(setdiff(qvsig,truePositives))/length(which(pv<=0.05))
     fdr_sm = length(setdiff(which(pv<=0.05),truePositives))/length(which(pv<=0.05))
     tpr_sm = length(intersect(which(pv<=0.05),truePositives))/length(which(pv<=0.05))
     fdr_perm = length(setdiff(c(sig_perm_hi,sig_perm_low),truePositives))/(length(sig_perm_hi)+length(sig_perm_low))
