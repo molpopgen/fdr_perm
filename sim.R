@@ -96,7 +96,7 @@ doStudy=function(nsites,nsam,noise,tpr,upreg,a,b)
     truePositives=which(ptp$truePositives==1)
     pv=doSingleMarkerTests(g,p)
     qv=qvalue(pv,fdr=0.05)  #Storey's FDR method at 0.05
-    qvsig=which(qv$sigificant == TRUE)
+    qvsig=which(qv$significant == TRUE)
     obs=getMedianDiffs(g,p,1:ncol(p))
     bounds=doPerms(g,p,100)
     sig_perm_low = which(obs <= bounds$lower)
