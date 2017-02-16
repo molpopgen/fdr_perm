@@ -57,6 +57,11 @@ proper FDR.  Rather, they are single-marker tests.  As expected, only the q-valu
 The permutation seems to control the per-marker FDR slightly better than the regression.  A reasonable hypothesis is
 that the effect is due to the stability of the median vs the mean (the latter is what the regression is testing).
 
+## Figure details
+
+The row labels in the pdf are the $upreg$ and $noise$ params.  The former have values 2,5, or 10. The latter have values
+0.1, 0.25, 0.5, or 1.
+
 ## Implications
 
 In reality, the FDR of an experiment is a complex function of the true positive rate and the power.  The power is
