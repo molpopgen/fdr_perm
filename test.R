@@ -12,7 +12,7 @@ for(upreg in c(2,5,10))
         {
             for(replicate in 1:NSIMS_PER_PARAM)
             {
-                results = doStudy(100,20,noise,tpr,upreg,1,5)
+                results = doStudy(1000,20,noise,tpr,upreg,1,5)
                 sim_results=add_row(sim_results,upreg,tpr,noise,fdr_sm=results$fdr_sm,fdr_sm_qv=results$fdr_sm_qv,fdr_perm=results$fdr_perm,tpr_sm=results$tpr_sm,tpr_perm=results$tpr_perm)
             }
         }
