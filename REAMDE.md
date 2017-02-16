@@ -32,7 +32,8 @@ The parameters are:
 
 The sim.R source file conducts the following three tests:
 
-* A regression of normalized "expression level" (z-score) onto genotype. We call these "single-marker" tests.
+* A regression of normalized "expression level" (z-score) onto genotype. We call these "single-marker" tests. A
+  single-marker test is declared "significant" if the regression $p <= 0.05$.
 * Asking whether or not the median difference in expression level between "presence" and "absence" genotypes is outside
   of the 2.5 and 97.5 quantiles of the permutation distribution.  The permutation distribution is obtained using the
   procedure outlined in Cardoso-Moreira et al.
